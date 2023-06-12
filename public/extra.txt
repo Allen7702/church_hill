@@ -1,0 +1,31 @@
+//page ya zaka za mkupuo
+-->tunatumia action ili kutofautisha page ya kuvuta data na page ya kuvuta jumuiya
+-->kama action imekua assigned mkupuo basi tunavuta watu wa jumuiya
+-->jumuiya husika inafichwa kwenye hidden field
+-->Kitu cha kukumbuka zaka hazina id ya mwanajumuiya hivyo tumetumia jina la mwanajumuia
+
+//kwenye utumaji wa meseji
+-->Vyama vya kitume vimevutwa vyama vyenye watu pekee ili kuepusha kutuma meseji kwenye kikundi kisicho na watu
+
+//tunapounda familia automatically tunasajili na mwanafamilia
+-->pia tuna generate na namba utambulisho
+
+//algorithm to assign namba ya utambulisho
+-->find the latest details limit only one to get the latest where the kanda look like, 
+-->Omitt the Zero's and any other symbols from the number
+-->Append or increment the number (specify the number digits)
+
+//getting ndoa katoliki, mseto etc
+->In a marriage we only consider a father so if father is married automatically a mother is married also so in counting we don't have duplicates we only have single data
+
+//creating the rika 
+->I appended the rika column into the data so that whever there is an upload data the rika is calculated automatically however i expect to have the background task which will automatically automatically update the rika
+
+//to get the combined matumizi there has been done some twisting in MainFedha report controller
+the matumizi_taslimu_ankras the aina_ya_huduma has been transformed into aina_ya_matumizi so that it can be merged with 
+matumizi_taslimu_mengineyo where we have aina ya matumizi likewise will be applied for matumizi_benkis
+
+//tool to generate familias and wanafamilia
+->upload first the names
+->create families using the tool then after upload the names to the system
+->create wanafamilias using the familias created (During the creation of familias we dont create mwanafamilia since he she will be generated later)

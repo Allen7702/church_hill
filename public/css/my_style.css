@@ -1,0 +1,131 @@
+.main-header .navbar-header[data-background-color="white"] .nav-search .input-group, .main-header .navbar-header .navbar-header-transparent .nav-search .input-group {
+  background: #f7f3f3 !important;
+}
+
+.main-header .navbar-header[data-background-color="white"] .nav-search .input-group .form-control, .main-header .navbar-header .navbar-header-transparent .nav-search .input-group .form-control {
+  color: #1a1818 !important;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.main-header .navbar-header[data-background-color="white"] .nav-search .input-group .search-icon, .main-header .navbar-header .navbar-header-transparent .nav-search .input-group .search-icon {
+  color: #e9f4fa !important;
+  /* color: #171819 !important;  */
+}
+
+.main-header .navbar-header[data-background-color].nav-search .input-group.focus{
+  background: #fff !important;
+  color: #fff;
+}
+
+/*     Nav Search     */
+.nav-search .input-group {
+  border: 1px solid #eee;
+  background: #eee;
+  border-radius: 5px; 
+  color: #eee!important;;
+}
+
+  .nav-search .input-group:hover, .nav-search .input-group:focus {
+    border: 1px solid #080808;
+  }
+
+.nav-search .form-control {
+  border: 0;
+  background: #48abf7;
+  font-size: 14px;
+  padding: 0.75em 1em;
+  min-width: 200px;
+  max-width: 100%; }
+
+.nav-search .input-group-text {
+  border: 0;
+  background: #e9f4fa; }
+
+.nav-search .search-icon {
+  font-size: 18px;
+  color: rgb(37, 35, 35); 
+  margin-right: 8px;
+}
+
+.nav-search .btn-search {
+  background: #48abf7;
+  padding: .375rem 1rem; 
+  color: #fff;
+}
+
+.table td, .table th {
+    font-size: 14px;
+    border-top-width: 0px;
+    border-bottom: 1px solid;
+    border-color: #ebedf2 !important;
+    padding: 0 20px !important;
+    height: 56px;
+    vertical-align: middle !important; 
+  }
+
+  .table_other td, .table th {
+    font-size: 14px;
+    border-top-width: 0px;
+    border-bottom: 1px solid;
+    border-color: #ebedf2 !important;
+    padding: 0 10px !important;
+    height: 40px;
+    vertical-align: middle !important; 
+  }
+
+  /*--changing the background color of the application*/
+  body {
+    color: #1d1d1f;
+  }
+
+  /*------- changing the sidebar colours--------*/
+  .sidebar .nav > .nav-item a, .sidebar[data-background-color="blue"] .nav > .nav-item a {
+    display: flex;
+    align-items: center;
+    color: #0c0c0c;
+    padding: 6px 25px;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 400;
+    position: relative;
+    margin-bottom: 3px;
+}
+
+.sidebar .nav > .nav-item a p, .sidebar[data-background-color="white"] .nav > .nav-item a p {
+  font-size: 14px;
+  margin-bottom: 0px;
+  margin-right: 5px;
+  white-space: nowrap;
+  color: #0c0c0c;
+  font-weight: 400;
+}
+
+.sidebar .nav > .nav-item a i, .sidebar[data-background-color="white"] .nav > .nav-item a i {
+  color: #0c0c0c;
+  margin-right: 15px;
+  width: 25px;
+  text-align: center;
+  vertical-align: middle;
+  float: left;
+  font-size: 18px;
+  line-height: 30px;
+}
+
+.sidebar .nav > .nav-item a:hover p, .sidebar .nav > .nav-item a:focus p, .sidebar[data-background-color="white"] .nav > .nav-item a:hover p, .sidebar[data-background-color="white"] .nav > .nav-item a:focus p {
+  color: #1d1d1f !important;
+  font-weight: 600;
+}
+
+.main-header .navbar-header[data-background-color] .nav-search .input-group {
+  border: 0;
+  background: rgb(239 228 228 / 50%) !important;
+  box-shadow: 3px 3px 6px 0 rgb(0 0 0 / 7%);
+  transition: all .4s;
+}
+
+/* handling the pills*/
+.nav-pills.nav-secondary .nav-link.active {
+  background: #48ABF7;
+  border: 1px solid #48ABF7;
+}
