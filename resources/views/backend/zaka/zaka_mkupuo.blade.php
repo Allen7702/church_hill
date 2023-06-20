@@ -70,7 +70,7 @@
 
                 <div class="form-group">
                     <button type="reset" class="btn btn-warning mr-2">Anza upya</button>
-                    <button id="wasilishaZakaBtn" type="button" class="btn btn-info">Wasilisha sadaka</button>
+                    <button id="wasilishaZakaBtn" type="button" class="btn btn-info">Wasilisha</button>
                 </div>
             </form>
     </div>
@@ -279,13 +279,11 @@
                 //assigning the total to denomination
                 $('#jumla_kuu_denomination').val(denomination_total);
                 denomination_total_overall = denomination_total;
-            })
-            
+            }) 
         })
 
         //when user clicks the 
         $('#denoBtn').on('click',function(){
-            
             //user skipped filling the date
             if($('#tarehe').val() == ""){
                 Toast.fire({
@@ -297,7 +295,6 @@
             }
 
             if(zaka_total_overall != denomination_total_overall){
-                
                 Swal.fire({
                     title: "<b class='text-primary'>Taarifa!</b>",
                     icon: "info",
@@ -308,10 +305,8 @@
                 })
                 return false;
             }
-
             //we are now correct
             else{
-
                 //getting the value of aina ya michango to be in hidden aina
                 var aina_data = "Zaka";
                 var tarehe_data = $('#tarehe').val();
@@ -327,12 +322,15 @@
                     event.preventDefault();
 
                     var url_data = "{{route('denomination.store')}}";
-
+                    
                     $.ajax({
                         url: url_data,
                         method: "POST",
-                        dataType: "JSON",
+                        headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
                         data: $(this).serialize(),
+                        dataType: "JSON",
                         success: function(data){
 
                             //if we have a successfully request
@@ -347,9 +345,9 @@
                                     icon: "success",
                                 })
 
-                                ajaxCall1();
-                            }
+                                ajaxCall1(); // <--- Call ajaxCall1 function here
 
+                            }
                             //if we have a wrong request
                             if(data.errors){
                                 var message = data.errors;
@@ -358,11 +356,47 @@
                                     icon: "info",
                                 })
                             }
+                            // Redirect to another page
+                            //window.location.href = 'http://127.0.0.1:8000/zaka';
                         }
                     })
-                })
+                }) 
             }  
         })
+
+        // Function to handle AJAX submission of zakaForm
+        function ajaxCall1(){
+            var url_data = "{{route('zaka_mkupuo.store')}}";
+
+            $.ajax({
+                url: url_data,
+                method: "POST",
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                data: $('#zakaForm').serialize(),
+                dataType: "JSON",
+                success: function(data){
+                    if(data.success){
+                        var message = data.success;
+
+                        Toast.fire({
+                            title: message,
+                            icon: "success",
+                        })
+
+                        window.location.href = 'http://127.0.0.1:8000/zaka';
+                    }
+                    if(data.errors){
+                        var message = data.errors;
+                        Toast.fire({
+                            title: message,
+                            icon: "info",
+                        })
+                    }
+                }
+            })
+        }
     })
 </script>
 

@@ -52,7 +52,9 @@
         <tr>
             <td width="99%;">Namba utambulisho: <b>{{$namba_utambulisho}}</b></td>
         </tr>
-
+        <tr>
+            <td width="99%;">Namba ya risiti: <b>{{$receipt_number}}</b></td>
+        </tr>
         <tr>
             <td width="99%;">Kanda: <b>{{$kanda}}</b></td>
         </tr>

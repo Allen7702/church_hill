@@ -5,7 +5,7 @@
             <div class="row">
 
                 <div class="col-md-5 col-sm-12">
-                    <h4 class="text-bold">{{strtoupper($title)}}</h4>
+                    <h4 class="text-bold">{{strtoupper($title ?? '')}}</h4>
                 </div>
 
                 <div class="col-md-7 text-right">

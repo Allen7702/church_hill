@@ -161,7 +161,12 @@ class MasakramentiController extends Controller
 
         $user = Auth::user();
         $user_ngazi = $user->ngazi;
-        $mwanafamilia= \App\Mwanafamilia::find(Auth::user()->mwanajumuiya_id);
+        $mwanafamiliaInstances = \App\Mwanafamilia::all();
+
+        foreach ($mwanafamiliaInstances as $mwanafamilia) {
+        echo $mwanafamilia->familia;
+        }
+       
         $familia = \App\Familia::find($mwanafamilia->familia);
         $jumuiya_d=\App\Jumuiya::where('jina_la_jumuiya',$familia->jina_la_jumuiya);
         $kanda=\App\Kanda::where('jina_la_kanda',$jumuiya_d->first()->jina_la_kanda);
@@ -228,7 +233,17 @@ class MasakramentiController extends Controller
 
         $familia=$familia->count();
 
-        $takwimu_za_kiroho = $takwimu_za_kiroho->get(['jumuiyas.jina_la_jumuiya','familias.id as familia_id','jumuiyas.id','jumuiyas.idadi_ya_familia']); 
+        // $takwimu_za_kiroho = $takwimu_za_kiroho->get(['familias.jina_la_jumuiya','familias.id as familia_id','jumuiyas.id','jumuiyas.idadi_ya_familia']); 
+       $takwimu_za_kiroho = Mwanafamilia::leftJoin('familias', 'familias.id', '=', 'mwanafamilias.familia')
+    ->leftJoin('jumuiyas', 'jumuiyas.jina_la_jumuiya', '=', 'familias.jina_la_jumuiya') 
+    ->groupBy('familias.jina_la_jumuiya')
+    ->get([
+        'familias.jina_la_jumuiya as jina_la_jumuiya',
+        'familias.id as familia_id', 
+        'jumuiyas.id', 
+        'jumuiyas.idadi_ya_familia'
+    ]);
+
 
         return view('backend.masakramenti.masakramenti_jumuiya',compact(['title','takwimu_za_kiroho','jumuiya','familia','wanafamilia','viongozi','familia_zote','waliobatizwa','kipaimara','ndoa','ekaristi','komunio']));
     }

@@ -12,7 +12,7 @@
 
                     <tr style="margin-bottom:10mm;">
                         <td style="width:99%;text-align:center;">
-                            <img src="{{ public_path('/uploads/images/'.$church_details->photo)}}" style="width:1.5in;height:10mm;text-align:center;" >
+                            <img src="{{ public_path('/uploads/images/'.$church_details->photo)}}" style="width:10mm;height:10mm;text-align:center;border-radius: 50%">
                         </td>
                     </tr>
 
@@ -52,7 +52,9 @@
         <tr>
             <td width="99%">Namba utambulisho: <b>{{$namba_utambulisho}}</b></td>
         </tr>
-
+        <tr>
+            <td width="99%">Namba ya risiti: <b>{{$receipt_number}}</b></td>
+        </tr>
         <tr>
             <td width="99%">Kanda: <b>{{$kanda}}</b></td>
         </tr>

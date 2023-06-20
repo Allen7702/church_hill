@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Receipt;
 use Illuminate\Http\Request;
 use App\AinaZaMichango;
 use App\AkauntiZaBenki;
@@ -21,9 +22,107 @@ use App\AwamuMichango;
 use App\Familia;
 use App\Zaka;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class MichangoController extends Controller
 {
+
+    public function getCommonData() {
+        //setting the beginning of the month in a year and current month
+        $data_variable = $this->getVariables();
+    
+        $current_month = $data_variable['current_month'];
+        $current_year = $data_variable['current_year'];
+        $start_month = $data_variable['start_month'];
+        $start_date = $data_variable['start_date'];
+        $begin_with = Carbon::parse($start_date)->format('Y-m-d');
+        $title = "michango kijumuiya $start_month - $current_month ($current_year)";
+    
+        
+        $user = Auth::user();
+        $user_ngazi = $user->ngazi;
+
+         if($user_ngazi=='administrator' || $user_ngazi=='Parokia' ){
+            $wanajumuiya = Mwanafamilia::leftJoin('familias','familias.id','mwanafamilias.familia')
+            ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
+            ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
+    
+            //generate or populate the data interms of jumuiya
+            $jumuiya_data = MichangoTaslimu::leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
+            ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
+            ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
+            ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
+            ->orderBy('kiasi','DESC')
+            ->groupBy('familias.jina_la_jumuiya')
+            ->get();
+    
+            $michangos = AinaZaMichango::latest()->get();
+            $michango_total = MichangoTaslimu::whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
+            $michango_taslimu = MichangoTaslimu::latest()->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
+
+    }else{
+
+            $mwanafamilia= \App\Mwanafamilia::find(Auth::user()->mwanajumuiya_id);
+            $familia = \App\Familia::find($mwanafamilia->familia);
+            $jumuiya=\App\Jumuiya::where('jina_la_jumuiya',$familia->jina_la_jumuiya);
+            $kanda=\App\Kanda::where('jina_la_kanda',$jumuiya->first()->jina_la_kanda);
+            if($user_ngazi=='Kanda'){
+                $jumuiyas = Jumuiya::where('jina_la_kanda',$kanda->first()->jina_la_kanda);
+                $familia=Familia::whereIn('jina_la_jumuiya',$jumuiyas->pluck('jina_la_jumuiya'));
+
+                $wanajumuiya_d = Mwanafamilia::whereIn('familia',$familia->pluck('id'));
+                $wanajumuiya = Mwanafamilia::whereIn('id',$wanajumuiya_d->pluck('id'))->leftJoin('familias','familias.id','mwanafamilias.familia')
+                ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
+                ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
+        
+                //generate or populate the data interms of jumuiya
+                $jumuiya_data = MichangoTaslimu::whereIn('id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
+                ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
+                ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
+                ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
+                ->orderBy('kiasi','DESC')
+                ->groupBy('familias.jina_la_jumuiya')
+                ->get();
+        
+                $michangos = AinaZaMichango::latest()->get();
+        
+                $michango_total = MichangoTaslimu::whereIn('mwanafamilia',$wanajumuiya_d->pluck('id'))->whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
+        
+                $michango_taslimu = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
+
+         }elseif($user_ngazi=='Jumuiya'){
+             $jumuiya = $jumuiya; 
+
+             $familia=Familia::whereIn('jina_la_jumuiya',$jumuiya->pluck('jina_la_jumuiya'));
+             $wanajumuiya_d = Mwanafamilia::whereIn('familia',$familia->pluck('id'));
+
+             $wanajumuiya = Mwanafamilia::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('familias','familias.id','mwanafamilias.familia')
+             ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
+             ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
+     
+             //generate or populate the data interms of jumuiya
+             $jumuiya_data = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
+             ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
+             ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
+             ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
+             ->orderBy('kiasi','DESC')
+             ->groupBy('familias.jina_la_jumuiya')
+             ->get();
+     
+             $michangos = AinaZaMichango::latest()->get();
+     
+             $michango_total = MichangoTaslimu::whereIn('mwanafamilia',$wanajumuiya_d->pluck('id'))->whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
+          
+             
+             $michango_taslimu = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
+
+            } 
+        } 
+    
+        return compact(['title','michango_taslimu','wanajumuiya','michangos','michango_total','jumuiya_data']);
+    }
+    
+
     //the index of michango
     public function michango_takwimu(Request $request){
         //setting the beginning of the month in a year and current month
@@ -123,97 +222,19 @@ class MichangoController extends Controller
     //function to handle michango kijumuiya
     public function michango_taslimu_kijumuiya(){
         //setting the beginning of the month in a year and current month
-        $data_variable = $this->getVariables();
+        //$data_variable = $this->getVariables();
 
-        $current_month = $data_variable['current_month'];
-        $current_year = $data_variable['current_year'];
-        $start_month = $data_variable['start_month'];
-        $start_date = $data_variable['start_date'];
-        $begin_with = Carbon::parse($start_date)->format('Y-m-d');
-        $title = "michango kijumuiya $start_month - $current_month ($current_year)";
+        // $current_month = $data_variable['current_month'];
+        // $current_year = $data_variable['current_year'];
+        // $start_month = $data_variable['start_month'];
+        // $start_date = $data_variable['start_date'];
+        // $begin_with = Carbon::parse($start_date)->format('Y-m-d');
+        // $title = "michango kijumuiya $start_month - $current_month ($current_year)";
 
+        $data = $this->getCommonData();
+        return view('backend.michango.michango_taslimu_kijumuiya', $data);
 
-        $user = Auth::user();
-        $user_ngazi = $user->ngazi;
-
-         if($user_ngazi=='administrator' || $user_ngazi=='Parokia' ){
-            $wanajumuiya = Mwanafamilia::leftJoin('familias','familias.id','mwanafamilias.familia')
-            ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
-            ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
-    
-            //generate or populate the data interms of jumuiya
-            $jumuiya_data = MichangoTaslimu::leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
-            ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
-            ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
-            ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
-            ->orderBy('kiasi','DESC')
-            ->groupBy('familias.jina_la_jumuiya')
-            ->get();
-    
-            $michangos = AinaZaMichango::latest()->get();
-            $michango_total = MichangoTaslimu::whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
-            $michango_taslimu = MichangoTaslimu::latest()->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
-
-    }else{
-
-            $mwanafamilia= \App\Mwanafamilia::find(Auth::user()->mwanajumuiya_id);
-            $familia = \App\Familia::find($mwanafamilia->familia);
-            $jumuiya=\App\Jumuiya::where('jina_la_jumuiya',$familia->jina_la_jumuiya);
-            $kanda=\App\Kanda::where('jina_la_kanda',$jumuiya->first()->jina_la_kanda);
-            if($user_ngazi=='Kanda'){
-                $jumuiyas = Jumuiya::where('jina_la_kanda',$kanda->first()->jina_la_kanda);
-                $familia=Familia::whereIn('jina_la_jumuiya',$jumuiyas->pluck('jina_la_jumuiya'));
-
-                $wanajumuiya_d = Mwanafamilia::whereIn('familia',$familia->pluck('id'));
-                $wanajumuiya = Mwanafamilia::whereIn('id',$wanajumuiya_d->pluck('id'))->leftJoin('familias','familias.id','mwanafamilias.familia')
-                ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
-                ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
-        
-                //generate or populate the data interms of jumuiya
-                $jumuiya_data = MichangoTaslimu::whereIn('id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
-                ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
-                ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
-                ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
-                ->orderBy('kiasi','DESC')
-                ->groupBy('familias.jina_la_jumuiya')
-                ->get();
-        
-                $michangos = AinaZaMichango::latest()->get();
-        
-                $michango_total = MichangoTaslimu::whereIn('mwanafamilia',$wanajumuiya_d->pluck('id'))->whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
-        
-                $michango_taslimu = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
-
-         }elseif($user_ngazi=='Jumuiya'){
-             $jumuiya = $jumuiya; 
-
-             $familia=Familia::whereIn('jina_la_jumuiya',$jumuiya->pluck('jina_la_jumuiya'));
-             $wanajumuiya_d = Mwanafamilia::whereIn('familia',$familia->pluck('id'));
-
-             $wanajumuiya = Mwanafamilia::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('familias','familias.id','mwanafamilias.familia')
-             ->leftJoin('jumuiyas','jumuiyas.jina_la_jumuiya','familias.jina_la_jumuiya')
-             ->get(['mwanafamilias.id as mwanafamilia_id','mwanafamilias.jina_kamili','familias.jina_la_jumuiya']);
-     
-             //generate or populate the data interms of jumuiya
-             $jumuiya_data = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')
-             ->leftJoin('familias','familias.id','=','mwanafamilias.familia')
-             ->select(DB::raw("SUM(michango_taslimus.kiasi) as kiasi"),'familias.jina_la_jumuiya')
-             ->whereBetween('michango_taslimus.tarehe',[$begin_with,Carbon::now()])
-             ->orderBy('kiasi','DESC')
-             ->groupBy('familias.jina_la_jumuiya')
-             ->get();
-     
-             $michangos = AinaZaMichango::latest()->get();
-     
-             $michango_total = MichangoTaslimu::whereIn('mwanafamilia',$wanajumuiya_d->pluck('id'))->whereBetween('tarehe',[$begin_with,Carbon::now()->format('Y-m-d')])->sum('kiasi');
-          
-             
-             $michango_taslimu = MichangoTaslimu::whereIn('mwanafamilias.id',$wanajumuiya_d->pluck('id'))->leftJoin('mwanafamilias','mwanafamilias.id','=','michango_taslimus.mwanafamilia')->get(['michango_taslimus.*','mwanafamilias.jina_kamili']);
-
-            } 
-        } 
-
-        return view('backend.michango.michango_taslimu_kijumuiya',compact(['title','michango_taslimu','wanajumuiya','michangos','michango_total','jumuiya_data']));
+        //return view('backend.michango.michango_taslimu_kijumuiya',compact(['title','michango_taslimu','wanajumuiya','michangos','michango_total','jumuiya_data']));
     }
 
     public function ajax_check_michango_ahadi(Request $request)
@@ -1323,8 +1344,9 @@ class MichangoController extends Controller
 
         Alert::toast("Michango imewekwa kikamilifu","success")->autoClose(4200)->timerProgressBar(4200);
 
-        return redirect('michango_taslimu_kijumuiya');
-
+        //return redirect('michango_taslimu_kijumuiya');
+        $viewData = $this->getCommonData();
+        return view('backend.michango.michango_taslimu_kijumuiya', $viewData);
     }
 
 
@@ -1350,6 +1372,12 @@ class MichangoController extends Controller
         }
 
         else{
+            // Create a new receipt.
+            $receipt = new Receipt;
+            $receipt->save();
+            // Use $receipt->id as your receipt identifier.
+             $receiptId = $receipt->id;
+             $receipt_number = str_pad($receiptId, 4, '0', STR_PAD_LEFT);
             foreach($data as $dat){
                 $mwanafamilia_id = $dat->mwanafamilia;
                 $aina_ya_mchango = $dat->aina_ya_mchango;
@@ -1379,7 +1407,7 @@ class MichangoController extends Controller
 
             //printing now
             $customPaper = array(0,0,226,360);
-            $pdf = PDF::setPaper($customPaper,'portrait')->loadView('backend.risiti.michango_taslimu_risiti',compact(['mwanajumuiya','kiasi','tarehe','aina_ya_mchango','namba_utambulisho','jumuiya','kanda']));
+            $pdf = PDF::setPaper($customPaper,'portrait')->loadView('backend.risiti.michango_taslimu_risiti',compact(['mwanajumuiya','kiasi','tarehe','aina_ya_mchango','namba_utambulisho','jumuiya','kanda','receipt_number']));
             $output = $pdf->output();
 
             return new Response($output, 200, [
@@ -1401,13 +1429,14 @@ class MichangoController extends Controller
             return back();
         }
 
-        else{
-            foreach($data as $dat){
+        else{         
+                foreach($data as $dat){
                 $mwanafamilia_id = $dat->mwanafamilia;
                 $aina_ya_mchango = $dat->aina_ya_mchango;
                 $tarehe = Carbon::parse($dat->tarehe)->format('d-F-Y');
                 $kiasi = number_format($dat->kiasi,2);
                 $nukushi = $dat->nambari_ya_nukushi;
+                
             }
 
             //combining with details of mwanajumuiya

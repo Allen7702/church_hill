@@ -4,7 +4,7 @@
 @section('content')
         <div class="slider-main">
 
-            @if($matukios->isEmpty())
+          
             <div id="slider" class="nivoSlider">
                 <img src="{{asset('/wp-content/themes/prayer-pro/images/slides/slider1.jpg')}}" alt="" title="#slidecaption1" />
                 <img src="{{asset('wp-content/themes/prayer-pro/images/slides/slider2.jpg')}}" alt="" title="#slidecaption2" />
@@ -29,26 +29,7 @@
             </div>
             <div class="slidebottom"></div>
         </div>
-        @else
-        <div id="slider" class="nivoSlider">
-            @foreach ($matukios as $item) @php $palette = \League\ColorExtractor\Palette::fromFilename('./uploads/images/'.$item->picha); $topColor = $palette->getMostUsedColors(1); $whiteCount = $palette->getColorCount(League\ColorExtractor\Color::fromHexToInt('#FFFFFF'));
-            $value = array_values($topColor)[0]; @endphp
-            <img src="{{('/uploads/images/'.$item->picha)}}" alt="" title="#slidecaption{{$item->id}}" /> @endforeach
-        </div>
-
-        @foreach($matukios as $item)
-        <div id="slidecaption{{$item->id}}" class="nivo-html-caption">
-            @if($value==$whiteCount)
-            <h5 style="color:#000000">{{$item->kichwa}}</h5>
-            <h2 style="color:#000000">Tumsifu yesu kristo</h2>
-            <p style="color:#000000">{{ucfirst(strtolower($item->maelezo))}}</p>
-            @else
-            <h5>{{$item->kichwa}}</h5>
-            <h2>Tumsifu yesu kristo</h2>
-            <p>{{ucfirst(strtolower($item->maelezo))}}</p>
-            @endif
-        </div>
-        @endforeach @endif
+    
         <!-- slider -->
 
         <section id="pagearea">

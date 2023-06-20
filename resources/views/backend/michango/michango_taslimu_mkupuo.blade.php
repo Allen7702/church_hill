@@ -80,7 +80,7 @@
     
             <div class="form-group">
                 <button type="reset" class="btn btn-warning mr-2">Anza upya</button>
-                <button id="wasilishaMichangoBtn" type="button" class="btn btn-info">Wasilisha sadaka</button>
+                <button id="wasilishaMichangoBtn" type="button" class="btn btn-info">Wasilisha </button>
             </div>
     
         </form>

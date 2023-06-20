@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Familia;
+use App\Receipt;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Zaka;
@@ -634,9 +635,9 @@ class ZakaController extends Controller
         //getting data
         $sum = 0;
         $idadi = 0;
-
+    
         foreach((array) $request->record as $key => $row){
-
+    
             //creating record for saving into zaka table
             if(($row['mwanajumuiya'] && $row['kiasi']) != ""){
                 $data_save = [
@@ -649,8 +650,8 @@ class ZakaController extends Controller
                 Zaka::create($data_save);
                 $sum = $sum + $row['kiasi'];
                 $idadi = $idadi + 1;
-
-
+    
+    
                 $mwezi=Carbon::parse($request->tarehe)->format('m');
                 $zaka_za_mwezi_huo=Zaka::where('mwanajumuiya',$row['mwanajumuiya'])
                 ->whereMonth('tarehe',$mwezi)
@@ -676,16 +677,23 @@ class ZakaController extends Controller
                 }
             }
         }
-
+    
         $message = "Ongezo";
         $data = "Ongezo la zaka za wanajumuiya $idadi kiasi $sum";
         $this->setActivity($message,$data);
-
-        Alert::toast("Zaka zimewekwa kikamilifu","success")->autoClose(4200)->timerProgressBar(4200);
-
-        
-
+    
+        // Check if the request is an AJAX request
+        if($request->ajax()){
+            // Return a JSON response
+            return response()->json(['success' => 'Zaka zimewekwa kikamilifu'], 200);
+        } else {
+            Alert::toast("Zaka zimewekwa kikamilifu","success")->autoClose(4200)->timerProgressBar(4200);
+            //return response('Hello', 200)->header('Content-Type', 'text/plain');
+            //return redirect('zaka');
+            //return redirect()->route('zaka');
+        }
     }
+    
 
     //function to handle deletion of data
     public function zaka_delete($id){
@@ -729,6 +737,12 @@ class ZakaController extends Controller
 
         else{
             foreach($data as $dat){
+            // Create a new receipt.
+            $receipt = new Receipt;
+            $receipt->save();
+            // Use $receipt->id as your receipt identifier.
+             $receiptId = $receipt->id;
+             $receipt_number = str_pad($receiptId, 4, '0', STR_PAD_LEFT);
                 $mwanafamilia_id = $dat->mwanajumuiya;
                 $aina_ya_toleo = "Zaka";
                 $tarehe = Carbon::parse($dat->tarehe)->format('d-F-Y');
@@ -757,7 +771,7 @@ class ZakaController extends Controller
 
             //printing now
             $customPaper = array(0,0,226,360);
-            $pdf = PDF::setPaper($customPaper,'portrait')->loadView('backend.risiti.zaka_risiti',compact(['mwanajumuiya','kiasi','tarehe','aina_ya_toleo','namba_utambulisho','jumuiya','kanda']));
+            $pdf = PDF::setPaper($customPaper,'portrait')->loadView('backend.risiti.zaka_risiti',compact(['mwanajumuiya','kiasi','tarehe','aina_ya_toleo','namba_utambulisho','jumuiya','kanda','receipt_number']));
             $output = $pdf->output();
 
             return new Response($output, 200, [
